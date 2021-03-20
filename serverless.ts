@@ -11,21 +11,20 @@ const serverlessConfiguration: AWS = {
       includeModules: true,
     },
     defaultStage: "local",
-    profile: "localstack",
     localstack: {
       debug: true,
-      stages: ["local"],
-      host: "http://localhost",
-      edgePort: 4566,
+      stages: ["local", "dev"],
       autostart: true,
+      lambda: { mountCode: true },
+      docker: { sudo: false },
+      endpointFile: "localstack_endpoints.json",
     },
   },
   plugins: ["serverless-webpack", "serverless-localstack"],
   provider: {
     name: "aws",
-    runtime: "nodejs14.x",
+    runtime: "nodejs12.x",
     apiGateway: {
-      minimumCompressionSize: 1024,
       shouldStartNameWithService: true,
     },
     environment: {
