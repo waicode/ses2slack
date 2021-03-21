@@ -1,5 +1,6 @@
 "use strict";
-const AWS = require("aws-sdk");
+
+// const AWS = require("aws-sdk");
 const request = require("request");
 
 function generateJsonResponse(bodyJson, statusCode = 200) {
@@ -10,11 +11,20 @@ function generateJsonResponse(bodyJson, statusCode = 200) {
 }
 
 module.exports.mailToSlack = (event, context, callback) => {
-  // const ses = new AWS.SES({ region: env.AWS_REGION });
-  const data = JSON.parse(event.body);
-  let messageText = `title: ${data.title} message: ${data.body}`;
+  console.info("event:");
+  console.info(event);
+  console.info("context:");
+  console.info(context);
+  console.info("callback:");
+  console.info(callback);
+
+  // const data = JSON.parse(event);
+
+  // let messageText = `title: ${data.title} message: ${data.body}`;
+  let messageText = `test!!!`;
+
   const options = {
-    url: env.SLACK_WEB_HOOK_URL,
+    url: process.env.SLACK_WEB_HOOK_URL,
     headers: {
       "Content-type": "application/json",
     },
@@ -39,18 +49,4 @@ module.exports.mailToSlack = (event, context, callback) => {
       });
     }
   });
-};
-
-module.exports.hello = async (event) => {
-  return {
-    statusCode: 200,
-    body: JSON.stringify(
-      {
-        message: "Go Serverless v1.0! Your function executed successfully!",
-        input: event,
-      },
-      null,
-      2
-    ),
-  };
 };

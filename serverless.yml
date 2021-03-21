@@ -31,11 +31,9 @@ provider:
   lambdaHashingVersion: "20201221"
   apiGateway:
     shouldStartNameWithService: true
+  environment:
+    SLACK_WEB_HOOK_URL: ${env:SLACK_WEB_HOOK_URL}
 
 functions:
-  hello:
-    handler: handler.hello
-    events:
-      - http:
-          path: hello
-          method: get
+  execute:
+    handler: handler.mailToSlack
