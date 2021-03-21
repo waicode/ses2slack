@@ -4,6 +4,7 @@ plugins:
   - serverless-localstack
 
 custom:
+  defaultStage: local
   localstack:
     debug: true
     autostart: true
@@ -15,10 +16,18 @@ custom:
       - local
       - dev
     endpointFile: localstack_endpoints.json
+  profiles:
+    local: sls-local
+    dev: sls-dev
+    st: sls-st
+    prod: sls-prod
 
 provider:
   name: aws
   runtime: nodejs12.x
+  region: ap-northeast-1
+  stage: ${opt:stage, self:custom.defaultStage} # 引数のstageを優先、なければデフォルト
+  profile: ${self:custom.profiles.${self:provider.stage}} # stageに応じたprofile名をcustomで指定
   lambdaHashingVersion: "20201221"
   apiGateway:
     shouldStartNameWithService: true
