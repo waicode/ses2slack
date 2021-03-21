@@ -11,15 +11,14 @@ function generateJsonResponse(bodyJson, statusCode = 200) {
 }
 
 module.exports.mailToSlack = (event, context, callback) => {
-  console.info("event:");
-  console.info(event);
-  console.info("context:");
-  console.info(context);
-  console.info("callback:");
-  console.info(callback);
+  const sesData = event.Records[0].ses;
+  const commonHeaders = sesData.commonHeaders;
+  const messageId = commonHeaders.messageId;
+  const subject = commonHeaders.subject;
+  const fromList = commonHeaders.from;
+  const toList = commonHeaders.to;
 
-  // const data = JSON.parse(event);
-
+  // TODO: S3に保存してから本文を取得する
   // let messageText = `title: ${data.title} message: ${data.body}`;
   let messageText = `test!!!`;
 
