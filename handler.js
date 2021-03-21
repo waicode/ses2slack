@@ -2,6 +2,13 @@
 const AWS = require("aws-sdk");
 const request = require("request");
 
+function generateJsonResponse(bodyJson, statusCode = 200) {
+  return {
+    statusCode: statusCode,
+    body: JSON.stringify(bodyJson, null, 2),
+  };
+}
+
 module.exports.mailToSlack = (event, context, callback) => {
   // const ses = new AWS.SES({ region: env.AWS_REGION });
   const data = JSON.parse(event.body);
@@ -18,32 +25,18 @@ module.exports.mailToSlack = (event, context, callback) => {
   };
 
   //メッセージ送信
-  request.post(options, function (error, response, body) {
+  request.post(options, (error, response, body) => {
     if (error) {
-      return {
-        statusCode: 500,
-        body: JSON.stringify(
-          {
-            message: "mailToSlack function were failed.",
-            error: error,
-          },
-          null,
-          2
-        ),
-      };
+      return generateJsonResponse(500, {
+        message: "mailToSlack function were failed.",
+        error: error,
+      });
     } else {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(
-          {
-            message: "mailToSlack function executed successfully.",
-            response: response,
-            body: body,
-          },
-          null,
-          2
-        ),
-      };
+      return generateJsonResponse(200, {
+        message: "mailToSlack function executed successfully.",
+        response: response,
+        body: body,
+      });
     }
   });
 };
