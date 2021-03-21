@@ -17,10 +17,10 @@ custom:
       - dev
     endpointFile: localstack_endpoints.json
   profiles:
-    local: sls-local
-    dev: sls-dev
-    st: sls-st
-    prod: sls-prod
+    local: sls-us-east-1-local
+    dev: sls-us-east-1-dev
+    st: sls-us-east-1-st
+    prod: sls-us-east-1-prod
 
 provider:
   name: aws
