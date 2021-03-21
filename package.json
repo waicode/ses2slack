@@ -1,0 +1,12 @@
+{
+  "name": "ses2slack",
+  "version": "1.0.0",
+  "description": "Amazon Simple Email Service (SES) to Slack",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "waicode",
+  "dependencies": {
+    "aws-sdk": "^2.868.0"
+  }
+}
