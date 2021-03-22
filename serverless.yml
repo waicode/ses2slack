@@ -21,6 +21,14 @@ custom:
     dev: sls-us-east-1-dev
     st: sls-us-east-1-st
     prod: sls-us-east-1-prod
+  environment:
+    dev:
+      SLACK_WEB_HOOK_URL: ${env:SLACK_WEB_HOOK_URL}
+      S3_MAIL_BUCKET_NAME: ses2slack-mail-${self:provider.stage}
+    st:
+      S3_MAIL_BUCKET_NAME: ses2slack-mail-${self:provider.stage}
+    prod:
+      S3_MAIL_BUCKET_NAME: ses2slack-mail-${self:provider.stage}
 
 provider:
   name: aws
@@ -31,9 +39,7 @@ provider:
   lambdaHashingVersion: "20201221"
   apiGateway:
     shouldStartNameWithService: true
-  environment:
-    SLACK_WEB_HOOK_URL: ${env:SLACK_WEB_HOOK_URL}
-    S3_MAIL_BUCKET_NAME: ses2slack-mail-${self:provider.stage}
+  environment: ${self:custom.environment.${self:provider.stage}}
 
 functions:
   execute:
