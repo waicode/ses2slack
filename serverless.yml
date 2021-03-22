@@ -33,7 +33,15 @@ provider:
     shouldStartNameWithService: true
   environment:
     SLACK_WEB_HOOK_URL: ${env:SLACK_WEB_HOOK_URL}
+    S3_MAIL_BUCKET_NAME: ses2slack-mail-${self:provider.stage}
 
 functions:
   execute:
     handler: handler.mailToSlack
+
+resources:
+  Resources:
+    Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.S3_MAIL_BUCKET_NAME}

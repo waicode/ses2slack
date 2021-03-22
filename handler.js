@@ -12,15 +12,16 @@ function generateJsonResponse(bodyJson, statusCode = 200) {
 
 module.exports.mailToSlack = (event, context, callback) => {
   const sesData = event.Records[0].ses;
-  const commonHeaders = sesData.commonHeaders;
-  const messageId = commonHeaders.messageId;
+  console.log(sesData);
+  const commonHeaders = sesData.mail.commonHeaders;
+
   const subject = commonHeaders.subject;
-  const fromList = commonHeaders.from;
-  const toList = commonHeaders.to;
 
   // TODO: S3に保存してから本文を取得する
-  // let messageText = `title: ${data.title} message: ${data.body}`;
-  let messageText = `test!!!`;
+  const messageBody = "てすと。てすと。てすと。\nてすと。てすと。てすと。";
+
+  let messageText =
+    `<!channel>\n*${subject}*\n\n` + "```" + `${messageBody}` + "```\n";
 
   const options = {
     url: process.env.SLACK_WEB_HOOK_URL,
