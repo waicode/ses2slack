@@ -22,13 +22,9 @@ custom:
     st: sls-us-east-1-st
     prod: sls-us-east-1-prod
   environment:
-    dev:
-      SLACK_WEB_HOOK_URL: ${env:SLACK_WEB_HOOK_URL}
-      S3_MAIL_BUCKET_NAME: ses2slack-mail-${self:provider.stage}
-    st:
-      S3_MAIL_BUCKET_NAME: ses2slack-mail-${self:provider.stage}
-    prod:
-      S3_MAIL_BUCKET_NAME: ses2slack-mail-${self:provider.stage}
+    SLACK_WEB_HOOK_SECRET: ses2slack-hook-${self:provider.stage}
+    S3_MAIL_BUCKET_NAME: ses2slack-mail-${self:provider.stage}
+    AWS_REGION_NAME: ${env:AWS_REGION}
 
 provider:
   name: aws
@@ -40,6 +36,12 @@ provider:
   apiGateway:
     shouldStartNameWithService: true
   environment: ${self:custom.environment.${self:provider.stage}}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+      Resource:
+        - "*"
 
 functions:
   execute:
