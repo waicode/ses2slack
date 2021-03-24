@@ -10,6 +10,28 @@ function generateJsonResponse(bodyJson, statusCode = 200) {
   };
 }
 
+async function getMailObject(messageId) {
+  try {
+    return await s3
+      .getObject({ Bucket: process.env.S3_MAIL_BUCKET_NAME, Key: messageId })
+      .promise();
+  } catch (err) {
+    console.error("Failed to get S3 object.");
+  }
+}
+
+function getHookUrl() {
+  // todo: シークレットのリソース定義/登録から
+  secret_name = process.env.SLACK_WEB_HOOK_SECRET;
+  secretsmanager_client = AWS.client(
+    "secretsmanager",
+    (region_name = process.env.AWS_REGION_NAME)
+  );
+  resp = secretsmanager_client.get_secret_value((SecretId = secret_name));
+  secret = json.loads(resp["SecretString"]);
+  return secret["SLACK_WEBHOOK_URL"];
+}
+
 module.exports.mailToSlack = (event, context, callback) => {
   const sesData = event.Records[0].ses;
   console.log(sesData);
@@ -17,33 +39,17 @@ module.exports.mailToSlack = (event, context, callback) => {
   const messageId = sesData.mail.messageId;
 
   const subject = commonHeaders.subject;
-
-  const s3 = new AWS.S3();
-  const params = { Bucket: process.env.S3_MAIL_BUCKET_NAME, Key: messageId };
-  // s3.client.getObject(params)
-
-  // # Emlデータ取得
-  // raw_message = response['Body'].read()
+  const response = getMailObject(messageId);
+  const messageBody = response.Body;
 
   // TODO: S3に保存してから本文を取得する
-  const messageBody = "てすと。てすと。てすと。\nてすと。てすと。てすと。";
+  // const messageBody = "てすと。てすと。てすと。\nてすと。てすと。てすと。";
 
   let messageText =
     `<!channel>\n*${subject}*\n\n` + "```" + `${messageBody}` + "```\n";
 
-  secret_name = process.env.SLACK_WEB_HOOK_SECRET;
-
-  secretsmanager_client = AWS.client(
-    "secretsmanager",
-    (region_name = process.env.AWS_REGION_NAME)
-  );
-  resp = secretsmanager_client.get_secret_value((SecretId = secret_name));
-  secret = json.loads(resp["SecretString"]);
-
-  SLACK_WEBHOOK_URL = secret["SLACK_WEBHOOK_URL"];
-
   const options = {
-    url: process.env.SLACK_WEB_HOOK_URL,
+    url: getHookUrl(),
     headers: {
       "Content-type": "application/json",
     },

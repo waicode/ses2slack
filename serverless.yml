@@ -52,4 +52,4 @@ resources:
     Bucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:provider.environment.S3_MAIL_BUCKET_NAME}
+        BucketName: ses2slack-mail-${self:provider.stage}
