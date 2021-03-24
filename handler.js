@@ -21,14 +21,13 @@ async function getMailObject(messageId) {
 }
 
 function getHookUrl() {
-  // todo: シークレットのリソース定義/登録から
   secret_name = process.env.SLACK_WEB_HOOK_SECRET;
   secretsmanager_client = AWS.client(
     "secretsmanager",
     (region_name = process.env.AWS_REGION_NAME)
   );
-  resp = secretsmanager_client.get_secret_value((SecretId = secret_name));
-  secret = json.loads(resp["SecretString"]);
+  let resp = secretsmanager_client.get_secret_value((SecretId = secret_name));
+  let secret = json.loads(resp["SecretString"]);
   return secret["SLACK_WEBHOOK_URL"];
 }
 
@@ -41,9 +40,6 @@ module.exports.mailToSlack = (event, context, callback) => {
   const subject = commonHeaders.subject;
   const response = getMailObject(messageId);
   const messageBody = response.Body;
-
-  // TODO: S3に保存してから本文を取得する
-  // const messageBody = "てすと。てすと。てすと。\nてすと。てすと。てすと。";
 
   let messageText =
     `<!channel>\n*${subject}*\n\n` + "```" + `${messageBody}` + "```\n";
