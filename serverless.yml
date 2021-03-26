@@ -35,13 +35,13 @@ provider:
   lambdaHashingVersion: "20201221"
   apiGateway:
     shouldStartNameWithService: true
-  environment: ${self:custom.environment.${self:provider.stage}}
+  environment: ${self:custom.environment}
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - secretsmanager:GetSecretValue
-      Resource:
-        - "*"
+        - s3:*
+        - secretsmanager:*
+      Resource: "*"
 
 functions:
   execute:

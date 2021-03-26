@@ -1,6 +1,13 @@
 "use strict";
 
+// aws
 const AWS = require("aws-sdk");
+AWS.config.update({ region: process.env.AWS_REGION_NAME });
+
+// mailparser
+const simpleParser = require("mailparser").simpleParser;
+
+// request
 const request = require("request");
 
 function generateJsonResponse(bodyJson, statusCode = 200) {
@@ -10,25 +17,52 @@ function generateJsonResponse(bodyJson, statusCode = 200) {
   };
 }
 
-async function getMailObject(messageId) {
+async function getMailObject(messageId, s3bucketName) {
+  const s3 = new AWS.S3();
+  console.info("S3_MAIL_BUCKET_NAME: ");
+  console.info(s3bucketName);
   try {
-    return await s3
-      .getObject({ Bucket: process.env.S3_MAIL_BUCKET_NAME, Key: messageId })
+    const mailObject = await s3
+      .getObject({ Bucket: s3bucketName, Key: messageId })
       .promise();
+    console.info("mailObject: ");
+    console.info(JSON.stringify(mailObject));
+    return mailObject;
   } catch (err) {
     console.error("Failed to get S3 object.");
+    console.error(err);
   }
 }
 
-function getHookUrl() {
-  secret_name = process.env.SLACK_WEB_HOOK_SECRET;
-  secretsmanager_client = AWS.client(
-    "secretsmanager",
-    (region_name = process.env.AWS_REGION_NAME)
-  );
-  let resp = secretsmanager_client.get_secret_value((SecretId = secret_name));
-  let secret = json.loads(resp["SecretString"]);
-  return secret["SLACK_WEBHOOK_URL"];
+async function getHookSecretValue(regionName, secretName) {
+  const client = new AWS.SecretsManager({
+    region: regionName,
+  });
+
+  try {
+    const hookSecretValue = await client
+      .getSecretValue({ SecretId: secretName })
+      .promise();
+    console.info("hookSecretValue: ");
+    console.info(JSON.stringify(hookSecretValue));
+    return hookSecretValue;
+  } catch (err) {
+    console.error("Failed to get SecretsManager Value.");
+    console.error(err);
+  }
+}
+
+async function getAWSResources(
+  regionName,
+  s3bucketName,
+  messageId,
+  secretName
+) {
+  const [mailObject, hookSecretValue] = await Promise.all([
+    getMailObject(messageId, s3bucketName),
+    getHookSecretValue(regionName, secretName),
+  ]);
+  return [mailObject, hookSecretValue];
 }
 
 module.exports.mailToSlack = (event, context, callback) => {
@@ -36,38 +70,67 @@ module.exports.mailToSlack = (event, context, callback) => {
   console.log(sesData);
   const commonHeaders = sesData.mail.commonHeaders;
   const messageId = sesData.mail.messageId;
-
   const subject = commonHeaders.subject;
-  const response = getMailObject(messageId);
-  const messageBody = response.Body;
 
-  let messageText =
-    `<!channel>\n*${subject}*\n\n` + "```" + `${messageBody}` + "```\n";
+  getAWSResources(
+    process.env.AWS_REGION_NAME,
+    process.env.S3_MAIL_BUCKET_NAME,
+    messageId,
+    process.env.SLACK_WEB_HOOK_SECRET
+  )
+    .then(([mailObject, hookSecretValue]) => {
+      console.info("hookSecretValue:");
+      console.info(JSON.stringify(hookSecretValue));
 
-  const options = {
-    url: getHookUrl(),
-    headers: {
-      "Content-type": "application/json",
-    },
-    body: {
-      text: messageText,
-    },
-    json: true,
-  };
+      const hookUrl = hookSecretValue["SecretString"]["SLACK_WEBHOOK_URL"];
 
-  //メッセージ送信
-  request.post(options, (error, response, body) => {
-    if (error) {
-      return generateJsonResponse(500, {
-        message: "mailToSlack function were failed.",
-        error: error,
+      console.info("hookUrl:");
+      console.info(JSON.stringify(hookUrl));
+
+      console.info("mailObject:");
+      console.info(JSON.stringify(mailObject));
+
+      const mailData = mailObject["Body"].toString;
+
+      console.info("mailData:");
+      console.info(JSON.stringify(mailData));
+
+      // Parse mail object
+      simpleParser(mailData).then((parsed) => {
+        const messageBody = parsed.text;
+        const messageText =
+          `<!channel>\n*${subject}*\n\n` + "```" + `${messageBody}` + "```\n";
+
+        const requestOptions = {
+          url: hookUrl,
+          headers: {
+            "Content-type": "application/json",
+          },
+          body: {
+            text: messageText,
+          },
+          json: true,
+        };
+
+        // Send message
+        request.post(requestOptions, (error, response, body) => {
+          if (error) {
+            return generateJsonResponse(500, {
+              message: "mailToSlack function were failed.",
+              error: error,
+            });
+          } else {
+            return generateJsonResponse(200, {
+              message: "mailToSlack function executed successfully.",
+              response: response,
+              body: body,
+            });
+          }
+        });
       });
-    } else {
-      return generateJsonResponse(200, {
-        message: "mailToSlack function executed successfully.",
-        response: response,
-        body: body,
-      });
-    }
-  });
+    })
+    .catch((err) => {
+      console.error("Failed to parse mail object.");
+      console.error(err);
+    });
 };
