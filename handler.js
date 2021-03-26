@@ -67,7 +67,6 @@ async function getAWSResources(
 
 module.exports.mailToSlack = (event, context, callback) => {
   const sesData = event.Records[0].ses;
-  console.log(sesData);
   const commonHeaders = sesData.mail.commonHeaders;
   const messageId = sesData.mail.messageId;
   const subject = commonHeaders.subject;
@@ -79,27 +78,18 @@ module.exports.mailToSlack = (event, context, callback) => {
     process.env.SLACK_WEB_HOOK_SECRET
   )
     .then(([mailObject, hookSecretValue]) => {
-      console.info("hookSecretValue:");
-      console.info(JSON.stringify(hookSecretValue));
-
-      const hookUrl = hookSecretValue["SecretString"]["SLACK_WEBHOOK_URL"];
-
-      console.info("hookUrl:");
-      console.info(JSON.stringify(hookUrl));
-
-      console.info("mailObject:");
-      console.info(JSON.stringify(mailObject));
-
-      const mailData = mailObject["Body"].toString;
-
-      console.info("mailData:");
-      console.info(JSON.stringify(mailData));
+      const hookUrl = JSON.parse(hookSecretValue["SecretString"]).slackHookUrl;
+      const mailBinaryData = mailObject["Body"];
+      const mailTextData = mailBinaryData.toString();
 
       // Parse mail object
-      simpleParser(mailData).then((parsed) => {
+      simpleParser(mailTextData).then((parsed) => {
         const messageBody = parsed.text;
+
+        console.info(`subject: ${subject} messageBody: ${messageBody}`);
+
         const messageText =
-          `<!channel>\n*${subject}*\n\n` + "```" + `${messageBody}` + "```\n";
+          `<!channel>\n\n*${subject}*\n\n` + "```" + `${messageBody}` + "```\n";
 
         const requestOptions = {
           url: hookUrl,
