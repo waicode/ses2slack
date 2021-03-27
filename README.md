@@ -15,6 +15,8 @@ Amazon SES は手動で AWS コンソール画面から設定します。
 
 Slack のチャンネル通知先 URL（Incoming Webhook）は Slack アプリ設定画面から取得してください。
 
+<br />
+
 # 📥 事前準備
 
 ## Amazon SES の設定
@@ -58,6 +60,8 @@ Serverless Framework はグローバル環境で動かすことを前提とし�
 
 `{prefix}`は通常は`/usr`または`/usr/local`または`/opt/homebrew`です。
 
+<br />
+
 # 🏷 環境変数について
 
 開発用の環境変数は`.env`（dotenv）で指定します。Slack の URL や AWS アカウント ID はダミー値を入れているので、書き換えてください。ステージング及び本番環境への環境変数適用は deploy 時にオプション引数で設定できます。
@@ -65,3 +69,5 @@ Serverless Framework はグローバル環境で動かすことを前提とし�
 ```
 sls deploy --stage st --awsAccountId 000000000000 --slackHookUrl https://hooks.slack.com/services/.../.../...
 ```
+
+<br />
