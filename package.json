@@ -9,9 +9,6 @@
   "dependencies": {
     "aws-sdk": "^2.868.0",
     "mailparser": "^3.1.0",
-    "request": "^2.88.2",
-    "serverless": "^2.31.0",
-    "serverless-cloudformation-changesets": "0.0.2",
-    "serverless-localstack": "^0.4.29"
+    "request": "^2.88.2"
   }
 }

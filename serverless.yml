@@ -2,6 +2,7 @@ service: ses2slack
 frameworkVersion: "2"
 plugins:
   - serverless-localstack
+  - serverless-dotenv-plugin
   - serverless-cloudformation-changesets
 
 custom:
@@ -18,6 +19,7 @@ custom:
       - dev
     endpointFile: localstack_endpoints.json
   profile: slsfw-${self:provider.stage} # stageに応じたprofile名を指定
+  awsRegionName: ${env:AWS_REGION_NAME}
   awsAccountId: ${env:AWS_ACCOUNT_ID}
   slackHookUrl: ${env:SLACK_WEB_HOOK_URL}
   s3MailBucketName: ses2slack-mail-${self:provider.stage}
@@ -25,12 +27,12 @@ custom:
   environment:
     S3_MAIL_BUCKET_NAME: ${self:custom.s3MailBucketName}
     SLACK_WEB_HOOK_SECRET: ${self:custom.slackHookSecretName}
-    AWS_REGION_NAME: ${env:AWS_REGION}
+    AWS_REGION_NAME: ${self:custom.awsRegionName}
 
 provider:
   name: aws
   runtime: nodejs12.x
-  region: ${env:AWS_REGION}
+  region: ${env:AWS_REGION_NAME}
   stage: ${opt:stage, self:custom.defaultStage} # 引数のstageを優先、なければデフォルト
   profile: ${self:custom.profile}
   lambdaHashingVersion: "20201221"
