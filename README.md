@@ -65,8 +65,6 @@ Serverless Framework はグローバル環境で動かすことを前提とし�
 
 `{prefix}`は通常は`/usr`または`/usr/local`または`/opt/homebrew`です。
 
-<br />
-
 ## 開発環境へのデプロイ
 
 事前準備が完了したら`sls deploy`コマンドで AWS リソースをデプロイできます。
