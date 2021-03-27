@@ -64,7 +64,7 @@ Serverless Framework はグローバル環境で動かすことを前提とし�
 
 # 🏷 環境変数について
 
-開発用の環境変数は`.env`（dotenv）で指定します。Slack の URL や AWS アカウント ID はダミー値を入れているので、書き換えてください。ステージング及び本番環境への環境変数適用は deploy 時にオプション引数で設定できます。
+開発用の環境変数は`.env`（dotenv）で指定します。Slack の URL や AWS アカウント ID はダミー値を入れているので、適宜書き換えてください。ステージング及び本番環境への環境変数適用は deploy 時にオプション引数で設定できます。
 
 ```
 sls deploy --stage st --awsAccountId 000000000000 --slackHookUrl https://hooks.slack.com/services/.../.../...
