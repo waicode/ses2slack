@@ -5,6 +5,7 @@ plugins:
 
 custom:
   defaultStage: local
+  awsAccountId: ${env:AWS_ACCOUNT_ID}
   localstack:
     debug: true
     autostart: true
@@ -16,11 +17,7 @@ custom:
       - local
       - dev
     endpointFile: localstack_endpoints.json
-  profiles:
-    local: sls-us-east-1-local
-    dev: sls-us-east-1-dev
-    st: sls-us-east-1-st
-    prod: sls-us-east-1-prod
+  profile: slsfw-${self:provider.stage} # stageに応じたprofile名を指定
   environment:
     SLACK_WEB_HOOK_SECRET: ses2slack-hook-${self:provider.stage}
     S3_MAIL_BUCKET_NAME: ses2slack-mail-${self:provider.stage}
@@ -31,17 +28,20 @@ provider:
   runtime: nodejs12.x
   region: ${env:AWS_REGION}
   stage: ${opt:stage, self:custom.defaultStage} # 引数のstageを優先、なければデフォルト
-  profile: ${self:custom.profiles.${self:provider.stage}} # stageに応じたprofile名をcustomで指定
+  profile: ${self:custom.profile}
   lambdaHashingVersion: "20201221"
   apiGateway:
     shouldStartNameWithService: true
   environment: ${self:custom.environment}
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - s3:*
-        - secretsmanager:*
-      Resource: "*"
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:Get*
+            - s3:List*
+            - secretsmanager:Get*
+          Resource: "*"
 
 functions:
   execute:
@@ -49,7 +49,26 @@ functions:
 
 resources:
   Resources:
-    Bucket:
+    MailObjectBucket:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: ses2slack-mail-${self:provider.stage}
+    MailObjectBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref MailObjectBucket
+        PolicyDocument:
+          Statement:
+            - Action:
+                - s3:PutObject
+              Effect: "Allow"
+              Principal:
+                Service: "ses.amazonaws.com"
+              Resource: !Join
+                - ""
+                - - "arn:aws:s3:::"
+                  - !Ref MailObjectBucket
+                  - /*
+              Condition:
+                StringEquals:
+                  "aws:Referer": ${opt:awsAccountId, self:custom.awsAccountId} # 引数のawsAccountIdを優先、なければenvから設定

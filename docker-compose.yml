@@ -3,10 +3,11 @@ services:
   localstack:
     image: localstack/localstack
     environment:
-      - AWS_DEFAULT_REGION= ${AWS_REGION}
+      - AWS_DEFAULT_REGION=${AWS_REGION}
       - EDGE_PORT=4566
       - SERVICES=lambda,s3,cloudformation,sts,apigateway,iam,route53
       - LAMBDA_REMOTE_DOCKER=false
+      - DEBUG=1
     ports:
       - "4566-4597:4566-4597"
     volumes:
