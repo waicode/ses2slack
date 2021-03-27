@@ -2,10 +2,10 @@ service: ses2slack
 frameworkVersion: "2"
 plugins:
   - serverless-localstack
+  - serverless-cloudformation-changesets
 
 custom:
   defaultStage: local
-  awsAccountId: ${env:AWS_ACCOUNT_ID}
   localstack:
     debug: true
     autostart: true
@@ -18,9 +18,13 @@ custom:
       - dev
     endpointFile: localstack_endpoints.json
   profile: slsfw-${self:provider.stage} # stageに応じたprofile名を指定
+  awsAccountId: ${env:AWS_ACCOUNT_ID}
+  slackHookUrl: ${env:SLACK_WEB_HOOK_URL}
+  s3MailBucketName: ses2slack-mail-${self:provider.stage}
+  slackHookSecretName: ses2slack-hook-${self:provider.stage}
   environment:
-    SLACK_WEB_HOOK_SECRET: ses2slack-hook-${self:provider.stage}
-    S3_MAIL_BUCKET_NAME: ses2slack-mail-${self:provider.stage}
+    S3_MAIL_BUCKET_NAME: ${self:custom.s3MailBucketName}
+    SLACK_WEB_HOOK_SECRET: ${self:custom.slackHookSecretName}
     AWS_REGION_NAME: ${env:AWS_REGION}
 
 provider:
@@ -52,7 +56,7 @@ resources:
     MailObjectBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ses2slack-mail-${self:provider.stage}
+        BucketName: ${self:custom.s3MailBucketName}
     MailObjectBucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:
@@ -72,3 +76,9 @@ resources:
               Condition:
                 StringEquals:
                   "aws:Referer": ${opt:awsAccountId, self:custom.awsAccountId} # 引数のawsAccountIdを優先、なければenvから設定
+    SlackHookSecret:
+      Type: AWS::SecretsManager::Secret
+      Properties:
+        Name: ${self:custom.slackHookSecretName}
+        Description: "Slack Incoming Webhook URL"
+        SecretString: !Sub '{ "slackHookUrl": "${opt:slackHookUrl, self:custom.slackHookUrl}" }' # 引数のslackHookUrlを優先、なければenvから設定
