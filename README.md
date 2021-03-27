@@ -15,6 +15,7 @@ ses2slack を使えば **Amazon SES で受信したメールをそのまま slac
 受信したメール情報は Lambda を介して Slack へ通知されるので、メールの送信元や件名、本文を解析して、特定のメールだけ Slack へ通知させることも可能です。
 
 <br />
+<br />
 
 # 📮 アーキテクチャはサーバレス
 
@@ -28,6 +29,7 @@ Amazon SES はメール受信のためにドメイン登録及び Route53 への
 
 Slack のチャンネル通知先 URL（Incoming Webhook）は Slack アプリ設定画面から取得して、アプリケーションのデプロイ時に設定します。
 
+<br />
 <br />
 
 # 📥 開発環境の事前準備
@@ -45,6 +47,8 @@ Slack のチャンネル通知先 URL（Incoming Webhook）は Slack アプリ�
 - nvm を使って`lts/erbium`の Node.js をインストール
 - direnv をインストール
 - プロジェクトルート直下で`direnv allow .`を実行して`.envrc`を自動読込
+
+<br />
 
 ## Serverless Framework の preinstall (npm i -g ...)
 
@@ -64,6 +68,8 @@ Serverless Framework はグローバル環境で動かすことを前提とし�
 グローバルモードでは`root`が所有する`{prefix}/lib/node_modules/`にパッケージがインストールされます。
 
 `{prefix}`は通常は`/usr`または`/usr/local`または`/opt/homebrew`です。
+
+<br />
 
 ## 開発環境へのデプロイ
 
@@ -96,6 +102,7 @@ sls deploy --stage dev
 ただしメール受信ができないため、localstack で検証できるのは Serverless Framework で作成する AWS リソースのみが対象です。実際にメールを受信して Slack へ通知させるためには、後述する AWS クラウドの設定が必要です。
 
 <br />
+<br />
 
 # 🌏 AWS クラウドで使うための事前準備
 
@@ -103,10 +110,14 @@ sls deploy --stage dev
 
 AWS アカウント ID をコンソールから取得します。IAM のポリシー設定のため、デプロイ時に指定が必要です。
 
+<br />
+
 ## Slack Incoming Webhook の URL を取得
 
 通知したい Slack のワークスペースで Slack アプリを作成して Incoming Webhook の URL を取得します。
 同じく、デプロイ時に指定が必要です。
+
+<br />
 
 ## AWS 環境へのデプロイ
 
@@ -117,6 +128,8 @@ sls deploy --stage st --awsAccountId 000000000000 --slackHookUrl https://hooks.s
 ```
 
 AWS 環境へデプロイすると、Lambda や S3 をはじめとする AWS リソースが AWS クラウド上に作成されます。後述する Amazon SES で設定でメール受信した際に動かす Lambda、及び、保存先の S3 を指定します。
+
+<br />
 
 ## Amazon SES の設定
 
@@ -136,8 +149,12 @@ AWS コンソールから利用するリージョンの SES へドメインの�
 
 ドメイン登録後、該当ドメインへの受信メール設定を行います。メールを受信した際に、Lambda 関数が呼び出され、S3 へのメールが保存されるように設定します。
 
+<br />
+<br />
+
 # 動作確認
 
 問題なく設定されていれば、登録したドメインにメールを送信すると Incoming Webhook で設定した Slack のチャンネルにメール内容が通知されます。通知条件や通知テンプレートは Lambda 上で適宜カスタマイズしてお使いください。
 
+<br />
 <br />
