@@ -1,9 +1,13 @@
 service: ses2slack
+
 frameworkVersion: "2"
+
 plugins:
   - serverless-localstack
   - serverless-dotenv-plugin
   - serverless-cloudformation-changesets
+
+useDotenv: true
 
 custom:
   defaultStage: local
