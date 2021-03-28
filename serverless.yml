@@ -34,7 +34,7 @@ provider:
   runtime: nodejs12.x
   region: ${env:AWS_REGION_NAME}
   stage: ${opt:stage, self:custom.defaultStage} # 引数のstageを優先、なければデフォルト
-  profile: ${self:custom.profile}
+  profile: ${opt:profile, self:custom.profile}
   lambdaHashingVersion: "20201221"
   apiGateway:
     shouldStartNameWithService: true
