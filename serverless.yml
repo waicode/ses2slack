@@ -25,7 +25,7 @@ custom:
   profile: slsfw-${self:provider.stage} # stageに応じたprofile名を指定
   awsRegionName: ${env:AWS_REGION_NAME}
   awsAccountId: ${env:AWS_ACCOUNT_ID}
-  slackHookUrl: ${env:SLACK_WEB_HOOK_URL}
+  slackHookUrl: ${opt:slackHookUrl, env:SLACK_WEB_HOOK_URL}
   s3MailBucketName: ses2slack-mail-${self:provider.stage}
   slackHookSecretName: ses2slack-hook-${self:provider.stage}
   environment:
@@ -87,4 +87,4 @@ resources:
       Properties:
         Name: ${self:custom.slackHookSecretName}
         Description: "Slack Incoming Webhook URL"
-        SecretString: !Sub '{ "slackHookUrl": "${opt:slackHookUrl, self:custom.slackHookUrl}" }' # 引数のslackHookUrlを優先、なければenvから設定
+        SecretString: !Sub '{ "slackHookUrl": "${self:custom.slackHookUrl}" }' # 引数のslackHookUrlを優先、なければenvから設定
